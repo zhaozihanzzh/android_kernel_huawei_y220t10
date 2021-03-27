@@ -64,6 +64,7 @@ extern SENSOR_INFO_T g_OV7690_yuv_info;
 extern SENSOR_INFO_T g_OV7675_yuv_info;
 extern SENSOR_INFO_T g_GT2005_yuv_info;
 extern SENSOR_INFO_T g_GC0309_yuv_info;
+extern SENSOR_INFO_T g_GC0329_yuv_info;
 extern SENSOR_INFO_T g_ov5640_yuv_info;
 extern SENSOR_INFO_T g_OV7660_yuv_info;
 extern SENSOR_INFO_T g_nmi600_yuv_info;//atv:nmi bonnie
@@ -82,6 +83,7 @@ LOCAL SENSOR_IMAGE_FORMAT s_sensor_image_format = SENSOR_IMAGE_FORMAT_DEFAULT;
  **---------------------------------------------------------------------------*/
 const SENSOR_INFO_T* main_sensor_infor_tab[]=
 { 
+	&g_GC0329_yuv_info,
 	&g_ov5640_yuv_info,
 	&g_OV2655_yuv_info,
 	&g_OV7675_yuv_info,
