@@ -239,7 +239,7 @@ static int sc8810_i2c_doxfer(struct sc8810_i2c *i2c, struct i2c_msg *msgs, int n
 	unsigned int timeout;
 	unsigned long  flags;
 	int ret;
-	
+	printk("MEUI i2c 0x%x\n", msgs->addr);
 	ret = sc8810_i2c_wait_exec(i2c);
 	if (ret != 0) {
 		ret = -EAGAIN;

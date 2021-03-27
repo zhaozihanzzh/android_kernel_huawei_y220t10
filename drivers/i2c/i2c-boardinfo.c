@@ -62,7 +62,7 @@ EXPORT_SYMBOL_GPL(__i2c_first_dynamic_bus_num);
 int __init
 i2c_register_board_info(int busnum,
 	struct i2c_board_info const *info, unsigned len)
-{
+{printk("MEUI %s 0x%x\n", info->type, info->addr);
 	int status;
 
 	down_write(&__i2c_board_lock);
