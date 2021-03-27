@@ -52,7 +52,7 @@ static struct i2c_board_info __initdata i2c_boardinfo1[] = {
 };
 
 static struct i2c_board_info __initdata i2c_boardinfo2[] = {
-	{I2C_BOARD_INFO("pixcir_ts", 0x5C),},
+	{I2C_BOARD_INFO("hq-sprd-tpd", 0x26),},
 };
 
 static void sprd8810_i2c2pin_config(void)

@@ -58,6 +58,12 @@
 #include <linux/dcam_sensor.h>
 #include <sound/audio_pa.h>
 
+int sprd_register_enable_irq_wake = 2;
+int sprd_unregister_disable_irq_wake = 2;
+int poweroff_ctp_fm_flag = 2;
+EXPORT_SYMBOL(poweroff_ctp_fm_flag);
+EXPORT_SYMBOL(sprd_register_enable_irq_wake);
+EXPORT_SYMBOL(sprd_unregister_disable_irq_wake);
 static struct resource example_resources[] = {
 	[0] = {
 	       .start = 0x9C004300,

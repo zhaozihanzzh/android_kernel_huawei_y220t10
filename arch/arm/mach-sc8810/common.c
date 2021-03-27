@@ -92,7 +92,7 @@ static struct resource sprd_tp_resources[] = {
 	},
 };
 static struct platform_device sprd_tp_device = {
-	.name		= "sprd-tp",
+	.name		= "hq-sprd-tpd",
 	.id		= 0,
 	.num_resources	= ARRAY_SIZE(sprd_tp_resources),
 	.resource	= sprd_tp_resources,
