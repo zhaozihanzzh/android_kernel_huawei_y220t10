@@ -53,6 +53,15 @@ static struct sdhci_host *g_sdio_host = NULL;
 #endif
 static unsigned int sdhci_sprd_get_base_clock(struct sdhci_host *host);
 
+unsigned int sdhci_wifi_detect_isbusy(void) {
+	unsigned int busy = 0;
+	#ifdef CONFIG_MMC_BUS_SCAN
+	if(g_sdio_host && g_sdio_host->mmc) {
+		busy = work_busy(&g_sdio_host->mmc->detect.work);
+	}
+	#endif
+	return busy;
+}
 
 /**
  * sdhci_sprd_get_max_clk - callback to get maximum clock frequency.
@@ -378,6 +387,44 @@ static int sdhci_sprd_resume(struct platform_device *dev)
 #define sdhci_sprd_suspend NULL
 #define sdhci_sprd_resume NULL
 #endif
+
+/*
+ *   set indicator indicates that whether any devices attach on sdio bus.
+ *   NOTE: devices must already attached on bus before calling this function.
+ *   @ on: 0---deattach devices
+ *         1---attach devices on bus
+ *   @ return: 0---set indicator ok
+ *             -1---no devices on sdio bus
+ */
+int sdhci_device_attach(int on)
+{
+	struct mmc_host *mmc = NULL;
+	if(g_sdio_host && (g_sdio_host->mmc)){
+		mmc = g_sdio_host->mmc;
+		if(mmc->card){
+			unsigned long flags;
+			//g_sdio_host->dev_attached = on; couldn't find!
+			if(!on){
+				spin_lock_irqsave(&mmc->lock, flags);
+				mmc->rescan_disable = 1;
+				spin_unlock_irqrestore(&mmc->lock, flags);
+				//if (cancel_delayed_work_sync(&mmc->detect))
+				    //wake_unlock(&mmc->detect_wake_lock);
+			}else{
+				spin_lock_irqsave(&mmc->lock, flags);
+				mmc->rescan_disable = 0;
+				spin_unlock_irqrestore(&mmc->lock, flags);
+			}
+		}else{
+			/* no devices */
+			//找不到g_sdio_host->dev_attached = 0;
+			return -1;
+		}
+		return 0;
+	}
+	return 0;
+}
+EXPORT_SYMBOL_GPL(sdhci_device_attach);
 
 static struct platform_driver sdhci_sprd_driver = {
 	.probe		= sdhci_sprd_probe,

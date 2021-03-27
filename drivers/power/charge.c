@@ -45,33 +45,58 @@
 /**---------------------------------------------------------------------------*
  **                         Global Variables                                  *
  **---------------------------------------------------------------------------*/
-extern int32_t get_battery_chg(void);
-extern int32_t get_battery_current(int is_usb);
-
-uint16_t  ac_charging_voltage_capacity_table[12][2]={0};
-uint16_t usb_charging_voltage_capacity_table[12][2]={0};
-
-uint16_t adc_voltage_table[2][2] ={
-    {915, 4200},
-    {783, 3600},
+uint16_t adc_voltage_table[2][2] =
+{
+    {928, 4200},
+    {796, 3600},
 };
 
-uint16_t voltage_capacity_table[][2] ={
-    {4158,  100},
-    {4059,  90},
-	{3973,  80},
-	{3899,  70},
-    {3831,  60},
-	{3777,  50},
-    {3739,  40},
-	{3712,  30},
-    {3689,  20},
-	{3669,  15},
-    {3608,  5},
+uint16_t voltage_capacity_table[][2] = 
+{
+    {4150,  100},
+    {4060,  90},
+	{3980,  80},
+	{3900,  70},
+    {3840,  60},
+	{3800,  50},
+    {3760,  40},
+	{3730,  30},
+    {3700,  20},
+	{3650,  15},
+    {3600,  5},
     {3400,  0},
 };
 
-int32_t temp_adc_table[][2] ={
+uint16_t ac_charging_voltage_capacity_table[][2]={
+    {4210,  100},
+	{4150,  70},
+    {4010,  60},
+	{3970,  50},
+    {3930,  40},
+	{3900,  30},
+    {3870,  20},
+    {3820,  15},
+	{3770,  5},
+    {3250,  0},
+};
+
+uint16_t usb_charging_voltage_capacity_table[][2]={
+    {4200,  100},
+	{4120,  90},
+	{4080,  80},
+	{4005,  70},
+    {3965,  60},
+	{3930,  50},
+    {3890,  40},
+	{3865,  30},
+    {3830,  20},
+    {3810,  15},
+	{3730,  5},
+    {3250,  0},
+};
+
+int32_t temp_adc_table[][2] = 
+{
     {  900,      0x4E  },//mv
     {  850,      0x59  },
     {  800,      0x67  },
@@ -79,7 +104,7 @@ int32_t temp_adc_table[][2] ={
     {  700,      0x89  },
     {  650,      0x9E  },
     {  600,      0xB8  },
-    {  550,      0xD4  },
+    {  550,      0xD4 },
     {  500,      0xF3  },
     {  450,      0x119},
     {  400,      0x13F},
@@ -90,7 +115,7 @@ int32_t temp_adc_table[][2] ={
     {  150,      0x22F},
     {  100,      0x260},
     {   50,      0x291},
-    {   0,       0x2BD},
+    {   0,      0x2BD},
     {  -50,      0x2E5},
     { -100,      0x308},
     { -150,      0x324},
@@ -98,39 +123,7 @@ int32_t temp_adc_table[][2] ={
     { -250,      0x354},
     { -300,      0x364}
 };
-/*****************************************************************************/
-//  Description:    This function is used to set the usb_charging_voltage_capacity_table.
-//  Add        :    yuelin.tang
-//  Note
-/*****************************************************************************/
-void CHG_SetUsbAcChgTable(int is_usb ,int32_t vprog)
-{
-    int32_t Resistance;
-    int32_t vol;
-    int32_t current;
-    uint16_t table_size;
-    int pos = 0;
-    Resistance = get_battery_chg(); 
-    if(vprog){
-	current = vprog ;
-    }else{
-    	current = get_battery_current(is_usb);
-    }
-    vol = (Resistance * current) / 1000;
-    printk("############################################# vol=%d\n",vol);
-    table_size = ARRAY_SIZE(voltage_capacity_table);
-    for(pos=0 ; pos < table_size ; pos++){
-	    if(is_usb){
-	            usb_charging_voltage_capacity_table[pos][0] = voltage_capacity_table[pos][0] + vol ;
-	            usb_charging_voltage_capacity_table[pos][1] = voltage_capacity_table[pos][1] ;
-		    if(vprog && (pos >= 2)) break ;
-	    }else{
-	            ac_charging_voltage_capacity_table[pos][0]  = voltage_capacity_table[pos][0] + vol ;
-	            ac_charging_voltage_capacity_table[pos][1]  = voltage_capacity_table[pos][1] ;
-		    if(vprog && (pos >= 2)) break ;
-	    }
-	}
-}
+
 /*****************************************************************************/
 //  Description:    This function is used to get the result of Vprog ADC.
 //                  Return: the Vprog value.
@@ -348,16 +341,42 @@ uint32_t CHGMNG_VoltageToPercentum (uint32_t voltage, int is_charging, int updat
 int charger_is_adapter(void)
 {
 	uint32_t ret;
+	volatile uint32_t i;
+	unsigned long irq_flag=0;
 
 	udc_enable();
-	mdelay(200);
-	ret = gpio_get_value(USB_DM_GPIO);   ///USB DM:GPIO145 in SC8800G2
-
 	udc_phy_down();
 
-	udc_disable();
+	local_irq_save(irq_flag);
 
-	return ret;
+	CHIP_REG_AND(USB_PHY_CTRL,(~(USB_DM_PULLDOWN_BIT|USB_DP_PULLDOWN_BIT)));
+
+	//Identify USB charger
+	CHIP_REG_OR(USB_PHY_CTRL, USB_DM_PULLUP_BIT);
+	mdelay(10);
+	ret = gpio_get_value(USB_DM_GPIO);   ///USB DM:GPIO145 in SC8800G2
+	CHIP_REG_AND(USB_PHY_CTRL,(~USB_DM_PULLUP_BIT));
+
+	//normal charger
+	if(ret) // else usb host
+	{
+		///Identify standard adapter
+		CHIP_REG_OR(USB_PHY_CTRL, USB_DM_PULLDOWN_BIT);
+		for(i = 0;i < 200;i++){;}  ///wait
+		if((gpio_get_value(USB_DM_GPIO)&BIT_1) && (gpio_get_value(USB_DP_GPIO)&BIT_2))
+		{
+			ret = 1; // adapter
+		}
+		else
+		{
+			ret = 1; //non standard adapter
+		}
+		CHIP_REG_AND(USB_PHY_CTRL,(~USB_DM_PULLDOWN_BIT));
+	}
+
+	local_irq_restore(irq_flag);
+	udc_disable();
+	return ret; 
 }
 #define VPROG_RESULT_NUM 10
 #define VBAT_RESULT_DELAY 10
@@ -404,4 +423,3 @@ int32_t CHG_GetVirtualVprog (void)
 }
 
 #endif  // End of charge.c
-
