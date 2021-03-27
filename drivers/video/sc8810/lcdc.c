@@ -216,7 +216,7 @@ static int set_lcdc_layer(struct sprdfb_device *dev)
 
 	if (dev->id == 0) {
 		/* color key */
-		reg_val |= (1 << 1);
+		reg_val |= (1 << 0);
 
 		/* alpha mode select */
 		reg_val |= (1 << 2);
@@ -247,7 +247,7 @@ static int set_lcdc_layer(struct sprdfb_device *dev)
 	} else {
 
 		/* color key */
-		reg_val |= (1 << 1);
+		reg_val |= (1 << 0);
 
 		/* alpha mode select */
 		reg_val |= (1 << 2);

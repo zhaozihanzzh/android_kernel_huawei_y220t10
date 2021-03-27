@@ -7,18 +7,17 @@
 
 
 
-#define  LCD_PANEL_ID_HX8369			0x69
-
+#define LCD_PANEL_ID_ILI9486 0x9486
 // External LCD public Varible
 /*****************************************************/
-extern  struct lcd_spec lcd_panel_hx8369;
+extern struct lcd_spec lcd_panel_ili9486;
 
 //Customer need to configure the tables below according to the special product
 static struct lcd_panel_cfg lcd_panel[] = {
 	[0]={
-		.lcd_id = LCD_PANEL_ID_HX8369,
-		.panel = &lcd_panel_hx8369,
-		},
+		.lcd_id = LCD_PANEL_ID_ILI9486,
+		.panel = &lcd_panel_ili9486,
+	},
 };
 
 
